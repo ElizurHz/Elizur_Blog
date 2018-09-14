@@ -30,25 +30,65 @@ module.exports = {
         lastUpdated: '上次更新',
         nav: [
           {
-            text: '微信小程序',
-            link: '/wx/mpvue-wx-mini-app-first-look'
+            text: '前端',
+            items: [
+              { text: 'React', link: '/frontend/react/' },
+              { text: 'Vue', link: '/frontend/vue/' },
+              { text: '微信小程序', link: '/frontend/wx/mpvue-wx-mini-app-first-look' }
+            ]
+          },
+          {
+            text: '后端',
+            items: [
+              { text: 'Node.js', link: '/backend/node/' },
+              { text: 'Koa', link: '/backend/koa/' },
+              { text: 'MongoDB', link: '/backend/mongodb/' }
+            ]
+          },
+          {
+            text: 'AI',
+            items: [
+              { text: '机器学习', link: '/ai/machine-learning' },
+              { text: '数据挖掘', link: '/ai/data-mining' },
+            ]
+          },
+          {
+            text: '运维/部署',
+            link: '/ops/'
           }
         ],
         sidebar: {
-          '/wx/': genSidebarConfig('微信小程序')
+          '/frontend/wx/': genWXSidebarConfig('微信小程序'),
+          '/ops/': genOpsSidebarConfig('运维/部署')
         }
       }
     }
   }
 }
 
-function genSidebarConfig (title) {
+function genWXSidebarConfig (title) {
   return [
     {
       title,
       collapsable: false,
       children: [
+        '',
         'mpvue-wx-mini-app-first-look',
+        'test'
+      ]
+    }
+  ]
+}
+
+
+function genOpsSidebarConfig (title) {
+  return [
+    {
+      title,
+      collapsable: false,
+      children: [
+        '',
+        'aliyun-ops'
       ]
     }
   ]
