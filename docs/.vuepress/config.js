@@ -48,8 +48,8 @@ module.exports = {
           {
             text: 'AI',
             items: [
-              { text: '机器学习', link: '/ai/machine-learning' },
-              { text: '数据挖掘', link: '/ai/data-mining' },
+              { text: '机器学习', link: '/ai/machine-learning/' },
+              { text: '数据挖掘', link: '/ai/data-mining/' },
             ]
           },
           {
@@ -88,7 +88,10 @@ function genOpsSidebarConfig (title) {
       collapsable: false,
       children: [
         '',
-        'aliyun-ops'
+        'c-s-ops',
+        'docker-ops',
+        'remote-private-git-first-look',
+        'domain-and-website-approve.md'
       ]
     }
   ]
