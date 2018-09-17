@@ -157,6 +157,10 @@ app.json 中，TabBar 的 icon 不能用 svg。
 
 在 mpvue 中可以使用 iconfont。
 
+### 关于边框
+
+mpvue-weui 和微信小程序的某写原生组件如 button 会有自带的边框，它们都是写在 `::after` 伪元素中的，如果你使用 border-radius 的话，会导致某些边框消失。此时建议将其隐藏并重新用下面的 rpx 的方式来写边框。
+
 ### 长度单位与 1 像素边框
 
 按照从移动 H5 转过来的思维，1像素边框一般需要用伪元素来写。小程序中同样可以使用 ::after 伪元素写1像素的边框，但是实际的显示出来的位置都和 Web 有区别。可以参考 [mpvue-weui](http://kuangpf.com/mpvue-weui/#/README) 的 weui.css 中的方式进行开发。
