@@ -13,7 +13,7 @@
 ### mpvue
 
 - mpvue 是美团开发的，允许开发者使用 Vue 语法来编写小程序的框架。
-- 小程序本质上类似于 Web 的多页应用，不同之处是它依靠微信 App 内的 JavaScript 引擎和 WXML/WXSS 引擎进行渲染，所以与 Web 端相比，小程序里不存在 DOM，无法使用原生 DOM 的操作，也不存在浏览器的各种 API。
+- 小程序和 Web 应用的不同之处是它依靠微信 App 内的 JavaScript 引擎和 WXML/WXSS 引擎进行渲染，所以与 Web 端相比，小程序里不存在 DOM，无法使用原生 DOM 的操作，也不存在浏览器的各种 API。
 - 在使用 mpvue 时，实际上可以看作是用 Vue 构建多页 Web App。
 - 在 Webpack 打包时，Vue Web App 是最终打包成 index.html 以及 css 和 js 文件各 1 个（如果你不开 source map 的话）。而 mpvue-loader 是将 Vue 语法转换成小程序原生语法的 Webpack loader，打包后的文件实际上就是原生小程序的语法（js 除外），这样就可以在小程序开发工具中预览和 debug。
 
