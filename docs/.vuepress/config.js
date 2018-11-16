@@ -32,6 +32,7 @@ module.exports = {
           {
             text: '前端',
             items: [
+              { text: 'TypeScript', link: '/frontend/typescript/' },
               { text: 'React', link: '/frontend/react/' },
               { text: 'Vue', link: '/frontend/vue/' },
               { text: '微信小程序', link: '/frontend/wx/mpvue-wx-mini-app-first-look' }
@@ -59,11 +60,19 @@ module.exports = {
         ],
         sidebar: {
           '/frontend/wx/': genWXSidebarConfig('微信小程序'),
-          '/ops/': genOpsSidebarConfig('运维/部署')
+          '/frontend/typescript/': genTSSidebarConfig('TypeScript'),
+          '/ops/': genOpsSidebarConfig('运维/部署'),
         }
       }
     }
   }
+  // configureWebpack: {
+  //   resolve: {
+  //     alias: {
+  //       '@static': 'path/to/some/dir'
+  //     }
+  //   }
+  // }
 }
 
 function genWXSidebarConfig (title) {
@@ -72,9 +81,19 @@ function genWXSidebarConfig (title) {
       title,
       collapsable: false,
       children: [
-        '',
-        'mpvue-wx-mini-app-first-look',
-        'test'
+        'mpvue-wx-mini-app-first-look'
+      ]
+    }
+  ]
+}
+
+function genTSSidebarConfig (title) {
+  return [
+    {
+      title,
+      collapsable: false,
+      children: [
+        'typescript-for-jser'
       ]
     }
   ]
