@@ -3,8 +3,8 @@ module.exports = {
   locales: {
     '/': {
       lang: 'zh-CN',
-      title: 'Elizur_Blog',
-      description: '一个不善表达的闷骚前端的个人小空间'
+      title: '全栈云玩家 Elizur',
+      description: `一个不善表达的闷骚前端的个人小空间`
     }
   },
   head: [
@@ -33,26 +33,26 @@ module.exports = {
             text: '前端',
             items: [
               { text: 'TypeScript', link: '/frontend/typescript/' },
-              { text: 'React', link: '/frontend/react/' },
-              { text: 'Vue', link: '/frontend/vue/' },
+              // { text: 'React', link: '/frontend/react/' },
+              // { text: 'Vue', link: '/frontend/vue/' },
               { text: '微信小程序', link: '/frontend/wx/mpvue-wx-mini-app-first-look' }
             ]
           },
-          {
-            text: '后端',
-            items: [
-              { text: 'Node.js', link: '/backend/node/' },
-              { text: 'Koa', link: '/backend/koa/' },
-              { text: 'MongoDB', link: '/backend/mongodb/' }
-            ]
-          },
-          {
-            text: 'AI',
-            items: [
-              { text: '机器学习', link: '/ai/machine-learning/' },
-              { text: '数据挖掘', link: '/ai/data-mining/' },
-            ]
-          },
+          // {
+          //   text: '后端',
+          //   items: [
+          //     { text: 'Node.js', link: '/backend/node/' },
+          //     { text: 'Koa', link: '/backend/koa/' },
+          //     { text: 'MongoDB', link: '/backend/mongodb/' }
+          //   ]
+          // },
+          // {
+          //   text: 'AI',
+          //   items: [
+          //     { text: '机器学习', link: '/ai/machine-learning/' },
+          //     { text: '数据挖掘', link: '/ai/data-mining/' },
+          //   ]
+          // },
           {
             text: '运维/部署',
             link: '/ops/'
