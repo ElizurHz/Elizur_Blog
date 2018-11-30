@@ -3,7 +3,7 @@ module.exports = {
   locales: {
     '/': {
       lang: 'zh-CN',
-      title: '全栈云玩家 Elizur',
+      title: '全栈云玩家 Elizur_陌彼',
       description: `一个不善表达的闷骚前端的个人小空间`
     }
   },
@@ -32,10 +32,11 @@ module.exports = {
           {
             text: '前端',
             items: [
+              { text: 'HTML-CSS', link: '/frontend/html-css/canvas-writing-pad' },
               { text: 'TypeScript', link: '/frontend/typescript/' },
               // { text: 'React', link: '/frontend/react/' },
               // { text: 'Vue', link: '/frontend/vue/' },
-              { text: '微信小程序', link: '/frontend/wx/mpvue-wx-mini-app-first-look' }
+              { text: '移动 H5 / 混合开发', link: '/frontend/mobile/mpvue-wx-mini-app-first-look' }
             ]
           },
           // {
@@ -59,7 +60,8 @@ module.exports = {
           }
         ],
         sidebar: {
-          '/frontend/wx/': genWXSidebarConfig('微信小程序'),
+          '/frontend/html-css/': genHTMLCSSSidebarConfig('HTML-CSS'),
+          '/frontend/mobile/': genMobileSidebarConfig('移动 H5 / 混合开发'),
           '/frontend/typescript/': genTSSidebarConfig('TypeScript'),
           '/ops/': genOpsSidebarConfig('运维/部署'),
         }
@@ -75,13 +77,25 @@ module.exports = {
   // }
 }
 
-function genWXSidebarConfig (title) {
+function genMobileSidebarConfig (title) {
   return [
     {
       title,
       collapsable: false,
       children: [
         'mpvue-wx-mini-app-first-look'
+      ]
+    }
+  ]
+}
+
+function genHTMLCSSSidebarConfig (title) {
+  return [
+    {
+      title,
+      collapsable: false,
+      children: [
+        'canvas-writing-pad'
       ]
     }
   ]
