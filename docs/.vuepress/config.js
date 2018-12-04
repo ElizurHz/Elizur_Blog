@@ -95,7 +95,8 @@ function genHTMLCSSSidebarConfig (title) {
       title,
       collapsable: false,
       children: [
-        'canvas-writing-pad'
+        'canvas-writing-pad',
+        'html5-audio-recording'
       ]
     }
   ]
