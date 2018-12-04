@@ -2,11 +2,50 @@
 
 最近在公司接了几个项目，都和 Canvas 手绘手写有关的，有历史遗留项目，还有要从头写的新需求。之前对 Canvas 的认知比较少，只写过一个带动画的圆环百分比小组件（[GitHub - ElizurHz/vue-percentage: 圆环百分比小组件](https://github.com/ElizurHz/vue-percentage)），是定好数据后再把它画到 Canvas 上，而手写板是第一次接触。
 
-## 相关基础知识
+## Canvas 相关基础知识
 
-### Canvas 基本用法
+本文列举一些本文涉及到的必备知识和常用的 API，详情可以在 [Canvas - Web API 接口参考 | MDN](https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API) 查看。
 
-### Canvas 事件
+### 基本用法
+
+`<canvas>` 是 HTML5 中的一个标签，我们可以以如下方式书写：
+
+```
+<canvas id="test" width="150" height="150"></canvas>
+```
+
+其中 width 和 height 是 canvas 的必需属性，否则无法看到绘制的内容。在初始化时我们也可以通过 `document.getElementById` 的方式获取 DOM 节点，并设置其 width 和 height 属性。**【注意：在已经绘制过的 canvas 上重设这两个属性会导致已绘制内容被清空】**
+
+如需在 canvas 上绘制，我们需要获取它的“渲染上下文 (The rendering context)”
+
+```
+const test = document.getElementById('test')
+const ctx = test.getContext('2d')
+```
+
+### 绘制
+
+在 Canvas 中我们定位使用的是坐标系，(0, 0) 代表的是最左上的点，可视区域最右下的点为 (width, height)。
+
+- clearRect(x, y, width, height): 以 (x, y) 为基准（左上角的点），清空长为 width、宽为 height 的矩形中所绘制的所有内容
+- beginPath(): 新建路径
+- closePath(): 闭合路径
+- stroke(): 绘制轮廓
+- moveTo(x, y): 移动至点 (x, y)
+- lineTo(x, y): 绘制一条从当前点到 (x, y) 的直线
+- bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y): 三次贝塞尔曲线
+
+### 贝塞尔曲线
+
+[贝塞尔曲线 - 维基百科，自由的百科全书](https://zh.wikipedia.org/wiki/%E8%B2%9D%E8%8C%B2%E6%9B%B2%E7%B7%9A)
+
+![Bézier_cube](./static/canvas-writing-pad/Bezier_3_big.gif)
+
+这里主要讲一下本文涉及到的三次贝塞尔曲线。它有起点、控制点 1、控制点 2、终点四个关键的点。
+
+...
+
+### 事件
 
 实现手写板，我们需要监听 Canvas 上的事件。由于我们可能是用鼠标去绘画，也可能是在触屏上绘画，所以我们除了监听鼠标事件之外，还需要监听触摸事件。
 
