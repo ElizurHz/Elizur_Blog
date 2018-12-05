@@ -2,9 +2,11 @@
 
 最近在公司接了几个项目，都和 Canvas 手绘手写有关的，有历史遗留项目，还有要从头写的新需求。之前对 Canvas 的认知比较少，只写过一个带动画的圆环百分比小组件（[GitHub - ElizurHz/vue-percentage: 圆环百分比小组件](https://github.com/ElizurHz/vue-percentage)），是定好数据后再把它画到 Canvas 上，而手写板是第一次接触。
 
+本文所涉及的代码是基于 [szimek/signature_pad](https://github.com/szimek/signature_pad) 这个开源组件进行改造的，所以下面会对源码进行一些解析，也会讲解一些我自己对其进行改造的经验。
+
 ## Canvas 相关基础知识
 
-本文列举一些本文涉及到的必备知识和常用的 API，详情可以在 [Canvas - Web API 接口参考 | MDN](https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API) 查看。
+本文列举一些本文涉及到的必备知识和常用的 API，API 具体内容不过多赘述，详情可以在 [Canvas - Web API 接口参考 | MDN](https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API) 查看。
 
 ### 基本用法
 
@@ -27,13 +29,19 @@ const ctx = test.getContext('2d')
 
 在 Canvas 中我们定位使用的是坐标系，(0, 0) 代表的是最左上的点，可视区域最右下的点为 (width, height)。
 
-- clearRect(x, y, width, height): 以 (x, y) 为基准（左上角的点），清空长为 width、宽为 height 的矩形中所绘制的所有内容
-- beginPath(): 新建路径
-- closePath(): 闭合路径
-- stroke(): 绘制轮廓
-- moveTo(x, y): 移动至点 (x, y)
-- lineTo(x, y): 绘制一条从当前点到 (x, y) 的直线
-- bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y): 三次贝塞尔曲线
+- context.clearRect(x, y, width, height): 以 (x, y) 为基准（左上角的点），清空长为 width、宽为 height 的矩形中所绘制的所有内容
+- context.eginPath(): 新建路径
+- context.closePath(): 闭合路径
+- context.stroke(): 绘制轮廓
+- context.moveTo(x, y): 移动至点 (x, y)
+- context.lineTo(x, y): 绘制一条从当前点到 (x, y) 的直线
+- context.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y): 三次贝塞尔曲线
+
+与图片相关的 API
+
+- canvas.toBlob(): 当前 canvas 转化为 blob 对象，参数是一个回调函数，回调函数的参数就是 blob 对象。**回调函数是异步执行的！**
+- canvas.toDataURL(): 转化为 base64 编码的 url。参数为图片格式，如 `'image/png'`。
+- context.drawImage(): 把图片绘制到 canvas 上。它有三种使用方式，根据传参数量的不同会有不同的结果。详情见 [CanvasRenderingContext2D.drawImage() - Web API 接口参考 | MDN](https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/drawImage)。
 
 ### 贝塞尔曲线
 
@@ -43,7 +51,11 @@ const ctx = test.getContext('2d')
 
 这里主要讲一下本文涉及到的三次贝塞尔曲线。它有起点、控制点 1、控制点 2、终点四个关键的点。
 
-...
+三次贝塞尔曲线的公式如下：
+
+![bezier_cube_formulation](./static/canvas-writing-pad/bezier_3_formulation.jpg)
+
+其中 t 为参数。使 t 逐渐从 0 增大到 1，即可通过这个方程式画出贝塞尔曲线。
 
 ### 事件
 
@@ -70,6 +82,80 @@ PointerEvent 的使用方法和 MouseEvent、TouchEvent 很类似，但有新增
 * 参考了 [GitHub - szimek/signature_pad: HTML5 canvas based smooth signature drawing](https://github.com/szimek/signature_pad) 的实现方案，使用的是三次贝塞尔曲线，由于三次贝塞尔曲线的绘制需要至少 4 个点，分别是起点、控制点 1、控制点 2、终点，所以不能每次 move 都 `stroke()`进行绘制，而是需要记录点坐标并通过计算来绘制。实际效果比上面一种方法的延迟和锯齿感都好很多，**但是唯独在 Surface Book + Surface Pen 上的延迟感还是很明显，而前一代的 iPad Pro + Apple Pen 非常流畅，不知道有没有做过 Surface Pen 适配的大神能解答这个问题**。于是我就想能不能用 PointerEvent 来解决，但测试用的 Surface Book 是公司的开发机，我们小组只有一台，常常被其他开发和 QA 抢去使用，所以没有机会去验证这个问题。
 
 ## 具体实现
+
+### Classes
+
+这里用了两个辅助类，Bezier 是贝塞尔曲线，而 Point 是 canvas 中需要用到的点。
+
+```
+class Bezier {
+  constructor(startPoint, control1, control2, endPoint) {
+    this.startPoint = startPoint
+    this.control1 = control1
+    this.control2 = control2
+    this.endPoint = endPoint
+  }
+
+  length = () => {
+    var steps = 10
+    var length = 0
+    var px = void 0
+    var py = void 0
+  
+    for (var i = 0; i <= steps; i += 1) {
+      var t = i / steps
+      var cx = this._point(t, this.startPoint.x, this.control1.x, this.control2.x, this.endPoint.x)
+      var cy = this._point(t, this.startPoint.y, this.control1.y, this.control2.y, this.endPoint.y)
+      if (i > 0) {
+        var xdiff = cx - px
+        var ydiff = cy - py
+        length += Math.sqrt(xdiff * xdiff + ydiff * ydiff)
+      }
+      px = cx
+      py = cy
+    }
+  
+    return length
+  }
+
+  // cubic bezier
+  _point = (t, start, c1, c2, end) => {
+    return start * (1.0 - t) * (1.0 - t) * (1.0 - t) + 3.0 * c1 * (1.0 - t) * (1.0 - t) * t + 3.0 * c2 * (1.0 - t) * t * t + end * t * t * t
+  }
+}
+
+export default Bezier
+```
+
+```
+class Point {
+  constructor(x, y, time) {
+    this.x = x;
+    this.y = y;
+    this.time = time || new Date().getTime();
+  }
+  
+  velocityFrom = (start) => {
+    return this.time !== start.time ? this.distanceTo(start) / (this.time - start.time) : 1
+  }
+
+  distanceTo = (start) => {
+    return Math.sqrt(Math.pow(this.x - start.x, 2) + Math.pow(this.y - start.y, 2))
+  }
+
+  equals = (other) => {
+    return this.x === other.x && this.y === other.y && this.time === other.time
+  }
+}
+
+export default Point
+```
+
+值得注意的是 Point 这个 Class 中，原作者加入了点绘制的时间，在原作者的项目中是有根据绘制速度调整笔画粗细的，但这个在我的改造中因为需求的缘故被去掉了。
+
+### mousedown/touchstart 
+### mousemove/touchmove
+### mouseup/touchend
 
 ## 额外功能
 

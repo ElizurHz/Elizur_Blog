@@ -10,7 +10,7 @@
 ## Education
 
 - 2010.09 ~ 2014.06 福州大学物流管理专业学士
-- 2015.03 ~ 2016.12 Master of Information Technology @ The University of Queensland
+- 2015.03 ~ 2016.12 Master of Information Technology @ The University of Queensland, Major in Data Mining
 
 ## Career
 
@@ -19,4 +19,5 @@
 
 ## Contact
 - [微博](https://weibo.com/1955273297)
+- [LinkedIn](https://www.linkedin.com/in/%E7%9A%93%E6%B3%BD-%E5%BE%90-88877090/)
 - Email: elizurhz@gmail.com
