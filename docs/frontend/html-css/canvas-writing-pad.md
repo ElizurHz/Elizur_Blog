@@ -1,4 +1,4 @@
-# Canvas 手写板的实现与优化（施工中）
+# Canvas 手写板的实现与优化
 
 最近在公司接了几个项目，都和 Canvas 手绘手写有关的，有历史遗留项目，还有要从头写的新需求。之前对 Canvas 的认知比较少，只写过一个带动画的圆环百分比小组件（[GitHub - ElizurHz/vue-percentage: 圆环百分比小组件](https://github.com/ElizurHz/vue-percentage)），是定好数据后再把它画到 Canvas 上，而手写板是第一次接触。
 
@@ -12,7 +12,7 @@
 
 `<canvas>` 是 HTML5 中的一个标签，我们可以以如下方式书写：
 
-```
+```html
 <canvas id="test" width="150" height="150"></canvas>
 ```
 
@@ -20,7 +20,7 @@
 
 如需在 canvas 上绘制，我们需要获取它的“渲染上下文 (The rendering context)”
 
-```
+```JavaScript
 const test = document.getElementById('test')
 const ctx = test.getContext('2d')
 ```
@@ -87,7 +87,7 @@ PointerEvent 的使用方法和 MouseEvent、TouchEvent 很类似，但有新增
 
 这里用了两个辅助类，Bezier 是贝塞尔曲线，而 Point 是 canvas 中需要用到的点。
 
-```
+```JavaScript
 class Bezier {
   constructor(startPoint, control1, control2, endPoint) {
     this.startPoint = startPoint
@@ -127,7 +127,7 @@ class Bezier {
 export default Bezier
 ```
 
-```
+```JavaScript
 class Point {
   constructor(x, y, time) {
     this.x = x;
@@ -154,13 +154,242 @@ export default Point
 值得注意的是 Point 这个 Class 中，原作者加入了点绘制的时间，在原作者的项目中是有根据绘制速度调整笔画粗细的，但这个在我的改造中因为需求的缘故被去掉了。
 
 ### mousedown/touchstart 
+
+```JavaScript
+_strokeBegin = (e) => {
+  this._data.push([])
+  this._reset()
+  this._strokeUpdate(e)
+  if (typeof this.onBegin === 'function') {
+    this.onBegin(e);
+  }
+}
+```
+
+因为代码是写在 class 中的，所以会出现很多 this，它们如果没有特殊说明都是指代的 class 本身。
+
+这部分没有什么关键的代码，直接调用 `this._strokeUpdate` 了。`onBegin` 是用户可以自定义的回调函数。
+
 ### mousemove/touchmove
+
+```JavaScript
+_strokeUpdate = (e) => {
+  let x = e.clientX
+  let y = e.clientY
+
+  let point = this._createPoint(x, y) // 根据 event 对象中的 clientX 和 clientY 生成该点在 canvas 坐标系中的 Point 对象
+  let lastPointGroup = this._data[this._data.length - 1]
+  let lastPoint = lastPointGroup && lastPointGroup[lastPointGroup.length - 1]
+  let isLastPointTooClose = lastPoint && point.distanceTo(lastPoint) < this.minDistance
+
+  // 如果绘制的点和之前的点距离太近，则跳过该点的绘制
+  // Skip this point if it's too close to the previous one
+  if (!(lastPoint && isLastPointTooClose)) {
+    let _addPoint = this._addPoint(point)
+    let curve = _addPoint.curve
+    let widths = _addPoint.widths
+    if (curve && widths) {
+      this._drawCurve(curve, widths.start, widths.end) // 绘制曲线
+    }
+
+    this._data[this._data.length - 1].push({
+      x: point.x,
+      y: point.y,
+      time: point.time,
+      color: this.penColor
+    })
+  }
+}
+
+_createPoint = (x, y, time) => {
+  var rect = this._canvas.getBoundingClientRect();
+
+  return new Point(x - rect.left, y - rect.top, time || new Date().getTime());
+}
+
+/* 
+ * 生成 Bezier 对象和曲线的宽度值
+ * curve: Bezier 对象
+ * widths: 包含 start 和 end 两个 properties
+*/
+_addPoint = (point) => {
+  var points = this.points
+  var tmp = void 0
+
+  points.push(point)
+
+  if (points.length > 2) {
+    // Bezier 类需要 4 个点的参数，作者为了减少延迟，把第一个点复制了一次，构造成 4 个点的数组，以此计算前两个点之间的三次贝塞尔曲线的控制点
+    // To reduce the initial lag make it work with 3 points
+    // by copying the first point to the beginning.
+    if (points.length === 3) points.unshift(points[0])
+
+    tmp = this._calculateCurveControlPoints(points[0], points[1], points[2])
+    var c2 = tmp.c2
+    tmp = this._calculateCurveControlPoints(points[1], points[2], points[3])
+    var c3 = tmp.c1
+    var curve = new Bezier(points[1], c2, c3, points[2])
+    var widths = this._calculateCurveWidths(curve)
+
+    // Remove the first element from the list,
+    // so that we always have no more than 4 points in points array.
+    points.shift()
+
+    return { curve: curve, widths: widths }
+  }
+
+  return {}
+}
+
+/* 
+ * 绘制贝塞尔曲线
+ * 绘制方法为从 0 至 1 逐步增大贝塞尔曲线的参数 t
+ * 代码实际上就是公式的计算
+*/
+_drawCurve = (curve, startWidth, endWidth) => {
+  var ctx = this._ctx
+  var widthDelta = endWidth - startWidth
+  var drawSteps = Math.floor(curve.length()) // 绘制步长是曲线的长度
+
+  ctx.beginPath()
+  
+  for (var i = 0; i < drawSteps; i += 1) {
+    // Calculate the Bezier (x, y) coordinate for this step.
+    var t = i / drawSteps
+    var tt = t * t
+    var ttt = tt * t
+    var u = 1 - t
+    var uu = u * u
+    var uuu = uu * u
+
+    var x = uuu * curve.startPoint.x
+    x += 3 * uu * t * curve.control1.x
+    x += 3 * u * tt * curve.control2.x
+    x += ttt * curve.endPoint.x
+
+    var y = uuu * curve.startPoint.y
+    y += 3 * uu * t * curve.control1.y
+    y += 3 * u * tt * curve.control2.y
+    y += ttt * curve.endPoint.y
+
+    var width = startWidth + ttt * widthDelta
+    this._drawPoint(x, y, width)
+  }
+
+  ctx.closePath()
+  ctx.fill()
+}
+
+// 绘制弧线
+_drawPoint = (x, y, size) => {
+  var ctx = this._ctx
+
+  ctx.moveTo(x, y)
+  ctx.arc(x, y, size, 0, 2 * Math.PI, false)
+  this._isEmpty = false
+}
+
+// 计算贝塞尔曲线的控制点
+_calculateCurveControlPoints = (s1, s2, s3) => {
+  var dx1 = s1.x - s2.x
+  var dy1 = s1.y - s2.y
+  var dx2 = s2.x - s3.x
+  var dy2 = s2.y - s3.y
+
+  var m1 = { x: (s1.x + s2.x) / 2.0, y: (s1.y + s2.y) / 2.0 }
+  var m2 = { x: (s2.x + s3.x) / 2.0, y: (s2.y + s3.y) / 2.0 }
+
+  var l1 = Math.sqrt(dx1 * dx1 + dy1 * dy1)
+  var l2 = Math.sqrt(dx2 * dx2 + dy2 * dy2)
+
+  var dxm = m1.x - m2.x
+  var dym = m1.y - m2.y
+
+  var k = l2 / (l1 + l2)
+  var cm = { x: m2.x + dxm * k, y: m2.y + dym * k }
+
+  var tx = s2.x - cm.x
+  var ty = s2.y - cm.y
+
+  return {
+    c1: new Point(m1.x + tx, m1.y + ty),
+    c2: new Point(m2.x + tx, m2.y + ty)
+  }
+}
+```
+
+这一部分就是绘图的核心算法了，我在项目中也是直接使用了作者编写的代码。
+在 `_addPoint()` 中有名为 `_calculateCurveWidths` 的函数，是原作者用于根据绘制速度计算笔画粗细的算法，原代码对应的相关参数是 `constructor` 中的 `this.maxWidth` 和 `this.minWidth`。
+由于我做的项目不需要这个功能，所以我只需要把 `this.maxWidth` 和 `this.minWidth` 设置成相同的值即可。
+这个功能详情可以参考前文提供的作者的 GitHub 上的源码。
+
+主要内容已经用中文备注在代码中了，总结起来就是：选取3个点来计算控制点，根据控制点绘制出两点之间的曲线
+
 ### mouseup/touchend
 
-## 额外功能
+```JavaScript
+_strokeEnd = (e) => {
+  var canDrawCurve = this.points.length > 2 // 如果点的数量太少，则无法绘制曲线
+  var point = this.points[0] // Point instance
+
+  if (!canDrawCurve && point) {
+    this._drawDot(point) // 点数量太少时改为绘制单个点
+  }
+
+  if (point) {
+    var lastPointGroup = this._data[this._data.length - 1]
+    var lastPoint = lastPointGroup[lastPointGroup.length - 1] // plain object
+
+    // 相同的点会被排除，不会被绘制
+    // When drawing a dot, there's only one point in a group, so without this check
+    // such group would end up with exactly the same 2 points.
+    if (!point.equals(lastPoint)) {
+      lastPointGroup.push({
+        x: point.x,
+        y: point.y,
+        time: point.time,
+        color: this.penColor
+      })
+    }
+  }
+  if (typeof this.onEnd === 'function') {
+    this.onEnd(e)
+  }
+}
+
+// 画点
+_drawDot = (point) => {
+  var ctx = this._ctx
+  var width = typeof this.dotSize === 'function' ? this.dotSize() : this.dotSize
+
+  ctx.beginPath()
+  this._drawPoint(point.x, point.y, width)
+  ctx.closePath()
+  ctx.fill()
+}
+```
+
+这里作者做了一个处理，就是在生成有效的点数量太少时则不会绘制曲线，改为绘制单点。如果忽略了此步，则会出现点触和小范围内移动无反应的情况，严重影响手写体验。
+
+## 其他功能
+
+这部分功能都是我根据需求加进去的。
 
 ### 单次手写保存成图片
 
-### 删除、空格、换行、清空
+首先我使用的 canvas 区域很大，但是实际上可能有手写内容的范围很小，所以这边要做一步剪裁的操作。
+在上面的代码中有一个 `this._data` 的变量，这个变量记录了所有绘制过的点。
+因此我们可以通过这个坐标数据来找出一个包含所有点的区域，再用 `drawImage()` 将其绘制到一个大小和这个区域相同的、隐藏的 canvas 中。
+接着使用 `toBlob()` 或者 `toDataURL()` 就可以导出图片了。
 
 ### 所有的手写内容拼接并保存为一张图片
+
+上面的【单次手写保存成图片】，在项目中我们是把它们排列起来，有空格、换行、退格等操作供排版，但是最后需要把这些所有的内容都导出成一张图片进行保存。
+这里同样需要用到 `drawImage()`，不过区别在于不需要裁切。
+
+我的解决方案是：首先每张图大小不同，所以我给每一行横向排列的图片定了一个固定的高度，超过这个高度的图片会被等比缩放到这个高度，未超过的则不作处理。
+而绘制上去之后，每次都会移动绘制起始点，在同一行内的则直接向右侧平移（缩放后的）图片的宽度，空格就向右移动一段空白的位置，换行则向下移动一行的高度并移动到最左侧。
+
+## 总结
+
+仅仅是一个入门级的操作，但是用比较粗暴的方式实现的话，体验上和更优的方案的差距会比较明显。
