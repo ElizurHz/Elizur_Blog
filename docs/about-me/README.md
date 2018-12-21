@@ -17,6 +17,10 @@
 - 2017.03 开始第一份工作
 - 2018.09 入职 [网龙](http://www.nd.com.cn) @ 厦门
 
+## Open Source Contribution
+
+- 掘金翻译计划译者 from 2018.12.20
+
 ## Contact
 - [微博](https://weibo.com/1955273297)
 - [LinkedIn](https://www.linkedin.com/in/%E7%9A%93%E6%B3%BD-%E5%BE%90-88877090/)
