@@ -1,3 +1,6 @@
 /node_modules
 /.vscode
-/Elizur_Blog
+/docs/Elizur_Blog
+/.vuepress
+
+cnzz

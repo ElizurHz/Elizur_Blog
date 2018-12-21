@@ -57,6 +57,10 @@ module.exports = {
           {
             text: '运维/部署',
             link: '/ops/'
+          },
+          {
+            text: '翻译',
+            link: '/translation/'
           }
         ],
         sidebar: {
