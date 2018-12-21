@@ -1,9 +1,9 @@
 module.exports = {
-  dest: 'Elizur_Blog',
+  dest: 'HuffnPuff',
   locales: {
     '/': {
       lang: 'zh-CN',
-      title: '全栈云玩家 Elizur_陌彼',
+      title: 'HuffnPuff',
       description: `一个不善表达的闷骚前端的个人小空间`
     }
   },
