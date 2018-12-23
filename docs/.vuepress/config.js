@@ -32,7 +32,7 @@ module.exports = {
           {
             text: '前端',
             items: [
-              { text: 'HTML-CSS', link: '/frontend/html-css/canvas-writing-pad' },
+              { text: 'HTML/CSS', link: '/frontend/html-css/canvas-writing-pad' },
               { text: 'TypeScript', link: '/frontend/typescript/' },
               // { text: 'React', link: '/frontend/react/' },
               // { text: 'Vue', link: '/frontend/vue/' },
@@ -61,13 +61,19 @@ module.exports = {
           {
             text: '翻译',
             link: '/translation/'
+          },
+          {
+            text: '杂记',
+            link: '/life/my-2018'
           }
         ],
         sidebar: {
-          '/frontend/html-css/': genHTMLCSSSidebarConfig('HTML-CSS'),
+          '/frontend/html-css/': genHTMLCSSSidebarConfig('HTML/CSS'),
           '/frontend/mobile/': genMobileSidebarConfig('移动 H5 / 混合开发'),
           '/frontend/typescript/': genTSSidebarConfig('TypeScript'),
           '/ops/': genOpsSidebarConfig('运维/部署'),
+          '/translation/': genTranslationSidebarConfig('翻译'),
+          '/life/': genLifeSidebarConfig('杂记')
         }
       }
     }
@@ -130,6 +136,30 @@ function genOpsSidebarConfig (title) {
         'docker-ops',
         'remote-private-git-first-look',
         'domain-and-website-approve.md'
+      ]
+    }
+  ]
+}
+
+function genTranslationSidebarConfig (title) {
+  return [
+    {
+      title,
+      collapsable: false,
+      children: [
+        ''
+      ]
+    }
+  ]
+}
+
+function genLifeSidebarConfig (title) {
+  return [
+    {
+      title,
+      collapsable: false,
+      children: [
+        'my-2018'
       ]
     }
   ]
