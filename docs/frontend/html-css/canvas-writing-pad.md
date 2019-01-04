@@ -83,113 +83,112 @@ PointerEvent 的使用方法和 MouseEvent、TouchEvent 很类似，但有新增
 
 ## 具体实现
 
+接下来，我们对 [szimek/signature_pad](https://github.com/szimek/signature_pad) 的源码进行一番解析。需要注意的是，master 分支的源码是用 TypeScript 写的，而在 gh-pages 分支上有 ES5 的版本。为了让不懂 ts 的读者能看懂，下面会对 [ES5 版本](https://github.com/szimek/signature_pad/blob/gh-pages/js/signature_pad.js) 的代码进行解析。
+
 ### Classes
 
 这里用了两个辅助类，Bezier 是贝塞尔曲线，而 Point 是 canvas 中需要用到的点。
 
 ```JavaScript
-class Bezier {
-  constructor(startPoint, control1, control2, endPoint) {
-    this.startPoint = startPoint
-    this.control1 = control1
-    this.control2 = control2
-    this.endPoint = endPoint
-  }
-
-  length = () => {
-    var steps = 10
-    var length = 0
-    var px = void 0
-    var py = void 0
-  
-    for (var i = 0; i <= steps; i += 1) {
-      var t = i / steps
-      var cx = this._point(t, this.startPoint.x, this.control1.x, this.control2.x, this.endPoint.x)
-      var cy = this._point(t, this.startPoint.y, this.control1.y, this.control2.y, this.endPoint.y)
-      if (i > 0) {
-        var xdiff = cx - px
-        var ydiff = cy - py
-        length += Math.sqrt(xdiff * xdiff + ydiff * ydiff)
-      }
-      px = cx
-      py = cy
-    }
-  
-    return length
-  }
-
-  // cubic bezier
-  _point = (t, start, c1, c2, end) => {
-    return start * (1.0 - t) * (1.0 - t) * (1.0 - t) + 3.0 * c1 * (1.0 - t) * (1.0 - t) * t + 3.0 * c2 * (1.0 - t) * t * t + end * t * t * t
-  }
+function Bezier(startPoint, control1, control2, endPoint) {
+  this.startPoint = startPoint;
+  this.control1 = control1;
+  this.control2 = control2;
+  this.endPoint = endPoint;
 }
 
-export default Bezier
+// Returns approximated length.
+Bezier.prototype.length = function () {
+  var steps = 10;
+  var length = 0;
+  var px = void 0;
+  var py = void 0;
+
+  for (var i = 0; i <= steps; i += 1) {
+    var t = i / steps;
+    var cx = this._point(t, this.startPoint.x, this.control1.x, this.control2.x, this.endPoint.x);
+    var cy = this._point(t, this.startPoint.y, this.control1.y, this.control2.y, this.endPoint.y);
+    if (i > 0) {
+      var xdiff = cx - px;
+      var ydiff = cy - py;
+      length += Math.sqrt(xdiff * xdiff + ydiff * ydiff);
+    }
+    px = cx;
+    py = cy;
+  }
+
+  return length;
+};
+
+/* eslint-disable no-multi-spaces, space-in-parens */
+Bezier.prototype._point = function (t, start, c1, c2, end) {
+  return start * (1.0 - t) * (1.0 - t) * (1.0 - t) + 3.0 * c1 * (1.0 - t) * (1.0 - t) * t + 3.0 * c2 * (1.0 - t) * t * t + end * t * t * t;
+};
 ```
 
 ```JavaScript
-class Point {
-  constructor(x, y, time) {
-    this.x = x;
-    this.y = y;
-    this.time = time || new Date().getTime();
-  }
-  
-  velocityFrom = (start) => {
-    return this.time !== start.time ? this.distanceTo(start) / (this.time - start.time) : 1
-  }
-
-  distanceTo = (start) => {
-    return Math.sqrt(Math.pow(this.x - start.x, 2) + Math.pow(this.y - start.y, 2))
-  }
-
-  equals = (other) => {
-    return this.x === other.x && this.y === other.y && this.time === other.time
-  }
+function Point(x, y, time) {
+  this.x = x;
+  this.y = y;
+  this.time = time || new Date().getTime();
 }
 
-export default Point
+Point.prototype.velocityFrom = function (start) {
+  return this.time !== start.time ? this.distanceTo(start) / (this.time - start.time) : 1;
+};
+
+Point.prototype.distanceTo = function (start) {
+  return Math.sqrt(Math.pow(this.x - start.x, 2) + Math.pow(this.y - start.y, 2));
+};
+
+Point.prototype.equals = function (other) {
+  return this.x === other.x && this.y === other.y && this.time === other.time;
+};
 ```
 
-值得注意的是 Point 这个 Class 中，原作者加入了点绘制的时间，在原作者的项目中是有根据绘制速度调整笔画粗细的，但这个在我的改造中因为需求的缘故被去掉了。
+值得注意的是 Point 这个类中，原作者加入了点绘制的时间，在原作者的项目中是有根据绘制速度调整笔画粗细的，但这个在我的改造中因为需求的缘故被去掉了。
 
 ### mousedown/touchstart 
 
+首先源码使用构造函数创建了一个 SignaturePad 的类。
+
 ```JavaScript
-_strokeBegin = (e) => {
-  this._data.push([])
-  this._reset()
-  this._strokeUpdate(e)
+SignaturePad.prototype._strokeBegin = function (event) {
+  this._data.push([]);
+  this._reset();
+  this._strokeUpdate(event);
+
   if (typeof this.onBegin === 'function') {
-    this.onBegin(e);
+    this.onBegin(event);
   }
-}
+};
 ```
 
-因为代码是写在 class 中的，所以会出现很多 this，它们如果没有特殊说明都是指代的 class 本身。
+从这里开始的代码会出现很多 this 或者 self，它们如果没有特殊说明都是指代的构造函数中的 this 本身。
 
 这部分没有什么关键的代码，直接调用 `this._strokeUpdate` 了。`onBegin` 是用户可以自定义的回调函数。
 
 ### mousemove/touchmove
 
 ```JavaScript
-_strokeUpdate = (e) => {
-  let x = e.clientX
-  let y = e.clientY
+SignaturePad.prototype._strokeUpdate = function (event) {
+  var x = event.clientX;
+  var y = event.clientY;
 
-  let point = this._createPoint(x, y) // 根据 event 对象中的 clientX 和 clientY 生成该点在 canvas 坐标系中的 Point 对象
-  let lastPointGroup = this._data[this._data.length - 1]
-  let lastPoint = lastPointGroup && lastPointGroup[lastPointGroup.length - 1]
-  let isLastPointTooClose = lastPoint && point.distanceTo(lastPoint) < this.minDistance
+  var point = this._createPoint(x, y); // 根据 event 对象中的 clientX 和 clientY 生成该点在 canvas 坐标系中的 Point 对象
+  var lastPointGroup = this._data[this._data.length - 1];
+  var lastPoint = lastPointGroup && lastPointGroup[lastPointGroup.length - 1];
+  var isLastPointTooClose = lastPoint && point.distanceTo(lastPoint) < this.minDistance;
 
   // 如果绘制的点和之前的点距离太近，则跳过该点的绘制
   // Skip this point if it's too close to the previous one
   if (!(lastPoint && isLastPointTooClose)) {
-    let _addPoint = this._addPoint(point)
-    let curve = _addPoint.curve
-    let widths = _addPoint.widths
+    var _addPoint = this._addPoint(point),
+        curve = _addPoint.curve,
+        widths = _addPoint.widths;
+
     if (curve && widths) {
-      this._drawCurve(curve, widths.start, widths.end) // 绘制曲线
+      this._drawCurve(curve, widths.start, widths.end);
     }
 
     this._data[this._data.length - 1].push({
@@ -197,125 +196,125 @@ _strokeUpdate = (e) => {
       y: point.y,
       time: point.time,
       color: this.penColor
-    })
+    });
   }
-}
+};
 
-_createPoint = (x, y, time) => {
+SignaturePad.prototype._createPoint = function (x, y, time) {
   var rect = this._canvas.getBoundingClientRect();
 
   return new Point(x - rect.left, y - rect.top, time || new Date().getTime());
-}
+};
 
 /* 
  * 生成 Bezier 对象和曲线的宽度值
  * curve: Bezier 对象
  * widths: 包含 start 和 end 两个 properties
 */
-_addPoint = (point) => {
-  var points = this.points
-  var tmp = void 0
+SignaturePad.prototype._addPoint = function (point) {
+  var points = this.points;
+  var tmp = void 0;
 
-  points.push(point)
+  points.push(point);
 
   if (points.length > 2) {
     // Bezier 类需要 4 个点的参数，作者为了减少延迟，把第一个点复制了一次，构造成 4 个点的数组，以此计算前两个点之间的三次贝塞尔曲线的控制点
     // To reduce the initial lag make it work with 3 points
     // by copying the first point to the beginning.
-    if (points.length === 3) points.unshift(points[0])
+    if (points.length === 3) points.unshift(points[0]);
 
-    tmp = this._calculateCurveControlPoints(points[0], points[1], points[2])
-    var c2 = tmp.c2
-    tmp = this._calculateCurveControlPoints(points[1], points[2], points[3])
-    var c3 = tmp.c1
-    var curve = new Bezier(points[1], c2, c3, points[2])
-    var widths = this._calculateCurveWidths(curve)
+    tmp = this._calculateCurveControlPoints(points[0], points[1], points[2]);
+    var c2 = tmp.c2;
+    tmp = this._calculateCurveControlPoints(points[1], points[2], points[3]);
+    var c3 = tmp.c1;
+    var curve = new Bezier(points[1], c2, c3, points[2]);
+    var widths = this._calculateCurveWidths(curve);
 
     // Remove the first element from the list,
     // so that we always have no more than 4 points in points array.
-    points.shift()
+    points.shift();
 
-    return { curve: curve, widths: widths }
+    return { curve: curve, widths: widths };
   }
 
-  return {}
-}
+  return {};
+};
 
 /* 
  * 绘制贝塞尔曲线
  * 绘制方法为从 0 至 1 逐步增大贝塞尔曲线的参数 t
  * 代码实际上就是公式的计算
 */
-_drawCurve = (curve, startWidth, endWidth) => {
-  var ctx = this._ctx
-  var widthDelta = endWidth - startWidth
-  var drawSteps = Math.floor(curve.length()) // 绘制步长是曲线的长度
+SignaturePad.prototype._drawCurve = function (curve, startWidth, endWidth) {
+  var ctx = this._ctx;
+  var widthDelta = endWidth - startWidth;
+  var drawSteps = Math.floor(curve.length()); // 绘制步长是曲线的长度
 
-  ctx.beginPath()
-  
+  ctx.beginPath();
+
   for (var i = 0; i < drawSteps; i += 1) {
     // Calculate the Bezier (x, y) coordinate for this step.
-    var t = i / drawSteps
-    var tt = t * t
-    var ttt = tt * t
-    var u = 1 - t
-    var uu = u * u
-    var uuu = uu * u
+    var t = i / drawSteps;
+    var tt = t * t;
+    var ttt = tt * t;
+    var u = 1 - t;
+    var uu = u * u;
+    var uuu = uu * u;
 
-    var x = uuu * curve.startPoint.x
-    x += 3 * uu * t * curve.control1.x
-    x += 3 * u * tt * curve.control2.x
-    x += ttt * curve.endPoint.x
+    var x = uuu * curve.startPoint.x;
+    x += 3 * uu * t * curve.control1.x;
+    x += 3 * u * tt * curve.control2.x;
+    x += ttt * curve.endPoint.x;
 
-    var y = uuu * curve.startPoint.y
-    y += 3 * uu * t * curve.control1.y
-    y += 3 * u * tt * curve.control2.y
-    y += ttt * curve.endPoint.y
+    var y = uuu * curve.startPoint.y;
+    y += 3 * uu * t * curve.control1.y;
+    y += 3 * u * tt * curve.control2.y;
+    y += ttt * curve.endPoint.y;
 
-    var width = startWidth + ttt * widthDelta
-    this._drawPoint(x, y, width)
+    var width = startWidth + ttt * widthDelta;
+    this._drawPoint(x, y, width);
   }
 
-  ctx.closePath()
-  ctx.fill()
-}
+  ctx.closePath();
+  ctx.fill();
+};
 
 // 绘制弧线
-_drawPoint = (x, y, size) => {
-  var ctx = this._ctx
+SignaturePad.prototype._drawPoint = function (x, y, size) {
+  var ctx = this._ctx;
 
-  ctx.moveTo(x, y)
-  ctx.arc(x, y, size, 0, 2 * Math.PI, false)
-  this._isEmpty = false
-}
+  ctx.moveTo(x, y);
+  ctx.arc(x, y, size, 0, 2 * Math.PI, false);
+  this._isEmpty = false;
+};
 
 // 计算贝塞尔曲线的控制点
-_calculateCurveControlPoints = (s1, s2, s3) => {
-  var dx1 = s1.x - s2.x
-  var dy1 = s1.y - s2.y
-  var dx2 = s2.x - s3.x
-  var dy2 = s2.y - s3.y
+SignaturePad.prototype._calculateCurveControlPoints = function (s1, s2, s3) {
+  var dx1 = s1.x - s2.x;
+  var dy1 = s1.y - s2.y;
+  var dx2 = s2.x - s3.x;
+  var dy2 = s2.y - s3.y;
 
-  var m1 = { x: (s1.x + s2.x) / 2.0, y: (s1.y + s2.y) / 2.0 }
-  var m2 = { x: (s2.x + s3.x) / 2.0, y: (s2.y + s3.y) / 2.0 }
+  var m1 = { x: (s1.x + s2.x) / 2.0, y: (s1.y + s2.y) / 2.0 };
+  var m2 = { x: (s2.x + s3.x) / 2.0, y: (s2.y + s3.y) / 2.0 };
 
-  var l1 = Math.sqrt(dx1 * dx1 + dy1 * dy1)
-  var l2 = Math.sqrt(dx2 * dx2 + dy2 * dy2)
+  var l1 = Math.sqrt(dx1 * dx1 + dy1 * dy1);
+  var l2 = Math.sqrt(dx2 * dx2 + dy2 * dy2);
 
-  var dxm = m1.x - m2.x
-  var dym = m1.y - m2.y
+  var dxm = m1.x - m2.x;
+  var dym = m1.y - m2.y;
 
-  var k = l2 / (l1 + l2)
-  var cm = { x: m2.x + dxm * k, y: m2.y + dym * k }
+  var k = l2 / (l1 + l2);
+  var cm = { x: m2.x + dxm * k, y: m2.y + dym * k };
 
-  var tx = s2.x - cm.x
-  var ty = s2.y - cm.y
+  var tx = s2.x - cm.x;
+  var ty = s2.y - cm.y;
 
   return {
     c1: new Point(m1.x + tx, m1.y + ty),
     c2: new Point(m2.x + tx, m2.y + ty)
-  }
-}
+  };
+};
 ```
 
 这一部分就是绘图的核心算法了，我在项目中也是直接使用了作者编写的代码。
@@ -328,17 +327,17 @@ _calculateCurveControlPoints = (s1, s2, s3) => {
 ### mouseup/touchend
 
 ```JavaScript
-_strokeEnd = (e) => {
-  var canDrawCurve = this.points.length > 2 // 如果点的数量太少，则无法绘制曲线
-  var point = this.points[0] // Point instance
+SignaturePad.prototype._strokeEnd = function (event) {
+  var canDrawCurve = this.points.length > 2; // 如果点的数量太少，则无法绘制曲线
+  var point = this.points[0]; // Point instance
 
   if (!canDrawCurve && point) {
-    this._drawDot(point) // 点数量太少时改为绘制单个点
+    this._drawDot(point); // 点数量太少时改为绘制单个点
   }
 
   if (point) {
-    var lastPointGroup = this._data[this._data.length - 1]
-    var lastPoint = lastPointGroup[lastPointGroup.length - 1] // plain object
+    var lastPointGroup = this._data[this._data.length - 1];
+    var lastPoint = lastPointGroup[lastPointGroup.length - 1]; // plain object
 
     // 相同的点会被排除，不会被绘制
     // When drawing a dot, there's only one point in a group, so without this check
@@ -349,24 +348,25 @@ _strokeEnd = (e) => {
         y: point.y,
         time: point.time,
         color: this.penColor
-      })
+      });
     }
   }
+
   if (typeof this.onEnd === 'function') {
-    this.onEnd(e)
+    this.onEnd(event);
   }
-}
+};
 
 // 画点
-_drawDot = (point) => {
-  var ctx = this._ctx
-  var width = typeof this.dotSize === 'function' ? this.dotSize() : this.dotSize
+SignaturePad.prototype._drawDot = function (point) {
+  var ctx = this._ctx;
+  var width = typeof this.dotSize === 'function' ? this.dotSize() : this.dotSize;
 
-  ctx.beginPath()
-  this._drawPoint(point.x, point.y, width)
-  ctx.closePath()
-  ctx.fill()
-}
+  ctx.beginPath();
+  this._drawPoint(point.x, point.y, width);
+  ctx.closePath();
+  ctx.fill();
+};
 ```
 
 这里作者做了一个处理，就是在生成有效的点数量太少时则不会绘制曲线，改为绘制单点。如果忽略了此步，则会出现点触和小范围内移动无反应的情况，严重影响手写体验。

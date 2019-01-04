@@ -34,7 +34,7 @@ module.exports = {
             items: [
               { text: 'HTML/CSS', link: '/frontend/html-css/canvas-writing-pad' },
               { text: 'TypeScript', link: '/frontend/typescript/' },
-              // { text: 'React', link: '/frontend/react/' },
+              { text: 'React', link: '/frontend/react/react-debounce' },
               // { text: 'Vue', link: '/frontend/vue/' },
               { text: '移动 H5 / 混合开发', link: '/frontend/mobile/mpvue-wx-mini-app-first-look' }
             ]
@@ -68,6 +68,7 @@ module.exports = {
           }
         ],
         sidebar: {
+          '/frontend/react/': genReactSidebarConfig('React'),
           '/frontend/html-css/': genHTMLCSSSidebarConfig('HTML/CSS'),
           '/frontend/mobile/': genMobileSidebarConfig('移动 H5 / 混合开发'),
           '/frontend/typescript/': genTSSidebarConfig('TypeScript'),
@@ -85,6 +86,18 @@ module.exports = {
   //     }
   //   }
   // }
+}
+
+function genReactSidebarConfig (title) {
+  return [
+    {
+      title,
+      collapsable: false,
+      children: [
+        'react-debounce'
+      ]
+    }
+  ]
 }
 
 function genMobileSidebarConfig (title) {
