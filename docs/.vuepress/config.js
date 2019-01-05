@@ -118,8 +118,7 @@ function genHTMLCSSSidebarConfig (title) {
       title,
       collapsable: false,
       children: [
-        'canvas-writing-pad',
-        'html5-audio-recording'
+        'canvas-writing-pad'
       ]
     }
   ]
@@ -148,7 +147,7 @@ function genOpsSidebarConfig (title) {
         'c-s-ops',
         'docker-ops',
         'remote-private-git-first-look',
-        'domain-and-website-approve.md'
+        'domain-and-website-approve'
       ]
     }
   ]
@@ -172,7 +171,8 @@ function genLifeSidebarConfig (title) {
       title,
       collapsable: false,
       children: [
-        'my-2018'
+        'my-2018',
+        'some-think-of-writing-blog'
       ]
     }
   ]
