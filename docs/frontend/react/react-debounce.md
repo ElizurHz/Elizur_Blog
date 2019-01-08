@@ -181,4 +181,4 @@ class Test extends React.Component {
 
 ## PS
 
-如果在服务端请求的函数中设置了 `setState`，那么有一定的可能性会遇到短时间内多次 `setState` 导致显示多次渲染，并且渲染的数据不是最新发出请求的数据。一般的 RESTful API 请求不太容易出现这种情况，但是最近我在做百度地图相关的开发时有遇到这样的情况。百度地图的 localSearch 使用的是 JSONP 的请求方式，不知道是不是和这个有关系。目前暂时没有找到解决方法。
+在我使用百度地图的 localSearch 时，我将 setState 放在了它的 JSONP Callback 中，这样 debounce 也无法解决返回顺序不一致的问题。同时如果进行快速输入，触发和数据返回的时间可能也不太一样。所以当遇到有服务端请求的并且需要使用 debounce 来对触发事件进行防抖动时，最好加入一个判断，当服务端返回值和请求值能对应上时才 setState。

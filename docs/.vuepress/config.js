@@ -33,20 +33,20 @@ module.exports = {
             text: '前端',
             items: [
               { text: 'HTML/CSS', link: '/frontend/html-css/canvas-writing-pad' },
+              { text: 'JavaScript', link: '/frontend/javascript/rxjs-first-look' },
               { text: 'TypeScript', link: '/frontend/typescript/' },
               { text: 'React', link: '/frontend/react/react-debounce' },
-              // { text: 'Vue', link: '/frontend/vue/' },
               { text: '移动 H5 / 混合开发', link: '/frontend/mobile/mpvue-wx-mini-app-first-look' }
             ]
           },
-          // {
-          //   text: '后端',
-          //   items: [
-          //     { text: 'Node.js', link: '/backend/node/' },
-          //     { text: 'Koa', link: '/backend/koa/' },
-          //     { text: 'MongoDB', link: '/backend/mongodb/' }
-          //   ]
-          // },
+          {
+            text: '后端',
+            items: [
+              // { text: 'Node.js', link: '/backend/node/' },
+              { text: '其他', link: '/backend/other/maven-tomcat-idea' }
+              // { text: 'MongoDB', link: '/backend/mongodb/' }
+            ]
+          },
           // {
           //   text: 'AI',
           //   items: [
@@ -72,6 +72,8 @@ module.exports = {
           '/frontend/html-css/': genHTMLCSSSidebarConfig('HTML/CSS'),
           '/frontend/mobile/': genMobileSidebarConfig('移动 H5 / 混合开发'),
           '/frontend/typescript/': genTSSidebarConfig('TypeScript'),
+          '/frontend/javascript/': genJSSidebarConfig('JavaScript'),
+          '/backend/other/': genOtherBackendSidebarConfig('后端其他'),
           '/ops/': genOpsSidebarConfig('运维/部署'),
           '/translation/': genTranslationSidebarConfig('翻译'),
           '/life/': genLifeSidebarConfig('杂记')
@@ -136,6 +138,29 @@ function genTSSidebarConfig (title) {
   ]
 }
 
+function genJSSidebarConfig (title) {
+  return [
+    {
+      title,
+      collapsable: false,
+      children: [
+        'rxjs-first-look'
+      ]
+    }
+  ]
+}
+
+function genOtherBackendSidebarConfig (title) {
+  return [
+    {
+      title,
+      collapsable: false,
+      children: [
+        'maven-tomcat-idea'
+      ]
+    }
+  ]
+}
 
 function genOpsSidebarConfig (title) {
   return [
