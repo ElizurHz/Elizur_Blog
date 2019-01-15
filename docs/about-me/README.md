@@ -22,6 +22,7 @@
 - 掘金翻译计划译者 from 2018.12.20
 
 ## Contact
+- [GitHub](https://github.com/ElizurHz)
 - [微博](https://weibo.com/1955273297)
 - [LinkedIn](https://www.linkedin.com/in/%E7%9A%93%E6%B3%BD-%E5%BE%90-88877090/)
 - Email: elizurhz@gmail.com

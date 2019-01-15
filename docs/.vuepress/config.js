@@ -55,8 +55,8 @@ module.exports = {
           //   ]
           // },
           {
-            text: '运维/部署',
-            link: '/ops/'
+            text: '其他技术',
+            link: '/other-tech/c-s-ops'
           },
           {
             text: '翻译',
@@ -74,7 +74,7 @@ module.exports = {
           '/frontend/typescript/': genTSSidebarConfig('TypeScript'),
           '/frontend/javascript/': genJSSidebarConfig('JavaScript'),
           '/backend/other/': genOtherBackendSidebarConfig('后端其他'),
-          '/ops/': genOpsSidebarConfig('运维/部署'),
+          '/other-tech/': genOtherTechSidebarConfig('其他技术'),
           '/translation/': genTranslationSidebarConfig('翻译'),
           '/life/': genLifeSidebarConfig('杂记')
         }
@@ -162,17 +162,17 @@ function genOtherBackendSidebarConfig (title) {
   ]
 }
 
-function genOpsSidebarConfig (title) {
+function genOtherTechSidebarConfig (title) {
   return [
     {
       title,
       collapsable: false,
       children: [
-        '',
         'c-s-ops',
         'docker-ops',
         'remote-private-git-first-look',
-        'domain-and-website-approve'
+        'domain-and-website-approve',
+        'git-upstream'
       ]
     }
   ]
