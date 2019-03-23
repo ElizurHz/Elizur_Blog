@@ -1,9 +1,9 @@
 module.exports = {
-  dest: 'HuffnPuff',
+  dest: 'La Vie en Code',
   locales: {
     '/': {
       lang: 'zh-CN',
-      title: 'HuffnPuff',
+      title: 'La Vie en Code',
       description: `一个不善表达的闷骚前端的个人小空间`
     }
   },
@@ -33,7 +33,7 @@ module.exports = {
             text: '前端',
             items: [
               { text: 'HTML/CSS', link: '/frontend/html-css/canvas-writing-pad' },
-              { text: 'JavaScript', link: '/frontend/javascript/rxjs-first-look' },
+              // { text: 'JavaScript', link: '/frontend/javascript/rxjs-first-look' },
               { text: 'TypeScript', link: '/frontend/typescript/' },
               { text: 'React', link: '/frontend/react/react-debounce' },
               { text: '移动 H5 / 混合开发', link: '/frontend/mobile/mpvue-wx-mini-app-first-look' }
@@ -72,7 +72,7 @@ module.exports = {
           '/frontend/html-css/': genHTMLCSSSidebarConfig('HTML/CSS'),
           '/frontend/mobile/': genMobileSidebarConfig('移动 H5 / 混合开发'),
           '/frontend/typescript/': genTSSidebarConfig('TypeScript'),
-          '/frontend/javascript/': genJSSidebarConfig('JavaScript'),
+          // '/frontend/javascript/': genJSSidebarConfig('JavaScript'),
           '/backend/other/': genOtherBackendSidebarConfig('后端其他'),
           '/other-tech/': genOtherTechSidebarConfig('其他技术'),
           '/translation/': genTranslationSidebarConfig('翻译'),
@@ -133,22 +133,23 @@ function genTSSidebarConfig (title) {
       collapsable: false,
       children: [
         'typescript-for-jser'
+        // 'typescript-in-action'
       ]
     }
   ]
 }
 
-function genJSSidebarConfig (title) {
-  return [
-    {
-      title,
-      collapsable: false,
-      children: [
-        'rxjs-first-look'
-      ]
-    }
-  ]
-}
+// function genJSSidebarConfig (title) {
+//   return [
+//     {
+//       title,
+//       collapsable: false,
+//       children: [
+//         'rxjs-first-look'
+//       ]
+//     }
+//   ]
+// }
 
 function genOtherBackendSidebarConfig (title) {
   return [

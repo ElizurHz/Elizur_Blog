@@ -179,6 +179,12 @@ class Test extends React.Component {
 
 如果需要在输入的时候防抖动请求服务端数据，这样写的结果就是仍然每次输入都会触发 input 的 onChange 事件，并且每次都会向服务端发出请求，只是每个请求会在 666 ms 的延时之后依次执行。
 
+## 事件对象
+
+React 中的事件都是[合成事件（SyntheticEvent）](https://reactjs.org/docs/events.html)，而合成事件有个特性是 [Event Pooling](https://reactjs.org/docs/events.html#event-pooling)。
+
+简单说就是在使用 debounce 函数之后 event 对象的所有属性都会变成 null。这时只要在代码前面加入 `e.persist()` 即可移除合成事件，这样在 debounce 包装之后，函数仍然可以获取到 event 对象。
+
 ## PS
 
 在我使用百度地图的 localSearch 时，我将 setState 放在了它的 JSONP Callback 中，这样 debounce 也无法解决返回顺序不一致的问题。同时如果进行快速输入，触发和数据返回的时间可能也不太一样。所以当遇到有服务端请求的并且需要使用 debounce 来对触发事件进行防抖动时，最好加入一个判断，当服务端返回值和请求值能对应上时才 setState。
